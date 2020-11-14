@@ -9,8 +9,10 @@ from discord.ext import commands, tasks
 import asyncio
 import DiscordUtils
 import math
+import aiosqlite
 
 global rate_limited
+global allowed_ids
 
 try:
     db = open("scrapedata.txt", "r")
@@ -23,6 +25,8 @@ except:
     rate_limited = "1"
 
 red = discord.Colour.from_rgb(0, 100, 0)
+
+allowed_ids = [405798011172814868, 370611001948635157, 287256464047865857, 454186048721780751, 191280151084924928, 698634807143563424, 411274336847134730, 479319375149662209, 750353117698064497, 629736214345416734, 746775313593270352]
 
 def query(search_term):
     try:
@@ -166,112 +170,81 @@ def get_price(url):
 
 
 def format_link(url, message):
-    producturls = []
-    productnames = []
-    producttypes = []
-    newproductnames = []
-    newproducttypes = []
-    prices = []
-    images = []
-    linkfound = []
-    newproducturls = []
+        producturls = []
+        productnames = []
+        producttypes = []
+        newproductnames = []
+        newproducttypes = []
+        prices = []
+        images = []
 
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    realtext = ''
-    for a in soup.find_all(class_='pageTitle'):
-        realtext = a.get_text()
-    if not realtext == 'Verification':
-        text = soup.find_all(class_='td__name')
-        for a in text:
-            if 'From parametric selection:' in a.get_text():
-                matches = re.finditer('From parametric selection:', a.get_text())
-                matches_positions = [match.start() for match in matches]
-                productnames.append(a.get_text()[0:matches_positions[0]])
-            else:
-                if 'From parametric filter:' in a.get_text():
-                    matches = re.finditer('From parametric filter:', a.get_text())
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        realtext = ''
+        for a in soup.find_all(class_='pageTitle'):
+            realtext = a.get_text()
+        if not realtext == 'Verification':
+            text = soup.find_all(class_='td__name')
+            for a in text:
+                if 'From parametric selection:' in a.get_text():
+                    matches = re.finditer('From parametric selection:', a.get_text())
                     matches_positions = [match.start() for match in matches]
                     productnames.append(a.get_text()[0:matches_positions[0]])
                 else:
-                    productnames.append(a.get_text())
-            if 'a href=' in str(a) and not '#view_custom_part' in str(a):
-                linkfound.append(True)
-            else:
-                linkfound.append(False)
-
-        text = soup.find_all(class_='td__component')
-        for a in text:
-            producttypes.append(a.get_text())
-        text = soup.find_all(class_='td__price')
-        for a in text:
-            if not '-' in a.get_text():
-                if 'No' in a.get_text() and 'Available' in a.get_text():
-                    prices.append('No Prices Available')
+                    if 'From parametric filter:' in a.get_text():
+                        matches = re.finditer('From parametric filter:', a.get_text())
+                        matches_positions = [match.start() for match in matches]
+                        productnames.append(a.get_text()[0:matches_positions[0]])
+                    else:
+                        productnames.append(a.get_text())
+            text = soup.find_all(class_='td__component')
+            for a in text:
+                producttypes.append(a.get_text())
+            text = soup.find_all(class_='td__price')
+            for a in text:
+                prices.append(a.get_text())
+            for b in range(len(producttypes)):
+                stringedit = productnames[b].replace('\n', '')
+                stringedit = stringedit.replace('\u200b', '')
+                stringedit = stringedit.replace(
+                    'Note: The following custom part link was user-provided. PCPartPicker cannot vouch for its validity or safety. If you follow this link, you are doing so at your own risk.Loading...',
+                    '')
+                newproductnames.append(stringedit)
+                stringedit = producttypes[b].replace('\n', '')
+                stringedit = stringedit.replace('\u200b', '')
+                stringedit = stringedit.replace(
+                    'Note: The following custom part link was user-provided. PCPartPicker cannot vouch for its validity or safety. If you follow this link, you are doing so at your own risk.Loading...',
+                    '')
+                stringedit = stringedit.replace('From parametric filter:', ' From parametric filter: ')
+                newproducttypes.append(stringedit)
+            wattage = ''
+            for a in soup.find_all(class_='partlist__keyMetric'):
+                wattage = a.get_text()
+            wattage = wattage.replace('Estimated Wattage:', '')
+            wattage = wattage.replace('\n', '')
+            for img in soup.find_all('img', src=True):
+                if '//cdna.pcpartpicker.com/static/forever/images/product/' in img['src']:
+                    images.append(img['src'])
+            list = ''
+            for i in range(len(newproductnames)):
+                if list == '':
+                    list = f"{list}**{newproducttypes[i]}:** {newproductnames[i]}"
                 else:
-                    prices.append(a.get_text().replace('\n', '').replace('Price', ''))
-        for b in range(len(producttypes)):
-            stringedit = productnames[b].replace('\n', '')
-            stringedit = stringedit.replace('\u200b', '')
-            stringedit = stringedit.replace(
-                'Note: The following custom part link was user-provided. PCPartPicker cannot vouch for its validity or safety. If you follow this link, you are doing so at your own risk.Loading...',
-                '')
-            newproductnames.append(stringedit)
-            stringedit = producttypes[b].replace('\n', '')
-            stringedit = stringedit.replace('\u200b', '')
-            stringedit = stringedit.replace(
-                'Note: The following custom part link was user-provided. PCPartPicker cannot vouch for its validity or safety. If you follow this link, you are doing so at your own risk.Loading...',
-                '')
-            stringedit = stringedit.replace('From parametric filter:', ' From parametric filter: ')
-            newproducttypes.append(stringedit)
-        wattage = ''
-        for a in soup.find_all(class_='partlist__keyMetric'):
-            wattage = a.get_text()
-        wattage = wattage.replace('Estimated Wattage:', '')
-        wattage = wattage.replace('\n', '')
-        for img in soup.find_all('img', src=True):
-            if '//cdna.pcpartpicker.com/static/forever/images/product/' in img['src']:
-                images.append(img['src'])
-
-        for link in soup.find_all(href=True):
-            if '/product/' in link['href'] and not '/product/' == link['href']:
-                producturls.append(f"https://pcpartpicker.com{link['href']}")
-
-        producturls = list(dict.fromkeys(producturls))
-
-        falses = 0
-        for i in range(len(linkfound)):
-            if linkfound[i] is False:
-                newproducturls.append('No URL')
-                falses += 1
-            else:
-                newproducturls.append(producturls[i - falses])
-
-        pcpplist = ''
-
-        for i in range(len(newproductnames)):
-            if linkfound[i] is True:
-                pcpplist = f"{pcpplist}\n**{newproducttypes[i]}:** {newproductnames[i]} ([**{prices[i]}**]({newproducturls[i]}))"
-            else:
-                pcpplist = f"{pcpplist}\n**{newproducttypes[i]}:** {newproductnames[i]} (**{prices[i]}**)"
-
-
-
-        if len(pcpplist) > 1950:
-            pcpplist = pcpplist[0:1950]
-        embed_msg = discord.Embed(title=f"PCPartPicker List",
-                                  description=f"{pcpplist[1:]}\n\n**Estimated Wattage:** {wattage}\n**Total:** {prices[-1]}",
-                                  colour=red, timestamp=datetime.utcnow(), url=url)
-        embed_msg.set_author(name=message.author, icon_url=message.author.avatar_url)
-        embed_msg.set_footer(text='Powered by PCPartPicker')
-
-        return embed_msg
-
-    else:
-        db = open("scrapedata.txt", "w")
-        db.write("0")
-        global rate_limited
-        rate_limited = "0"
+                    list = f"{list}**\n{newproducttypes[i]}:** {newproductnames[i]}"
+            if len(list) > 1950:
+                list = list[0:1950]
+            embed_msg = discord.Embed(title=f"PCPartPicker List", description=f"{list}\n\n**Estimated Wattage:** {wattage}\n**Total:** {prices[-1]}",
+                                      colour=red, timestamp=datetime.utcnow(), url=url)
+            embed_msg.set_author(name=message.author, icon_url=message.author.avatar_url)
+            embed_msg.set_footer(text='Powered by PCPartPicker')
+            if len(images) > 0:
+                embed_msg.set_thumbnail(url=f"https:{images[0]}")
+            return embed_msg
+        else:
+            db = open("scrapedata.txt", "w")
+            db.write("0")
+            global rate_limited
+            rate_limited = "0"
 
 async def log(bot, command, ctx):
     logs = bot.get_channel(769906608318316594)
@@ -1390,7 +1363,159 @@ class PCPartPicker(commands.Cog):
             embed_msg.set_footer(text='Powered by pcpartpicker.com/forums')
             await ctx.send(embed=embed_msg)
 
+    @commands.command()
+    async def addcase(self, ctx, rank, *, case_name):
+        global allowed_ids
 
+        if ctx.message.author.id in allowed_ids:
+            try:
+                conn = await aiosqlite.connect("bot.db")
+                cursor = await conn.execute("INSERT INTO cases VALUES (?, ?)", (case_name, int(rank)))
+                await conn.commit()
+                await conn.close()
+                ranks = ['High End', 'Midrange', 'Low End', 'Budget']
+                embed_msg = discord.Embed(title=f"Case '{case_name}' saved as a {ranks[int(rank) - 1]}.",
+                                          description="Check the `,cases` command to see the updated cases list.",
+                                          timestamp=datetime.utcnow(), colour=red)
+            except ValueError:
+                embed_msg = discord.Embed(title=f"'{rank}' is not a number between 1 and 4!",
+                                          timestamp=datetime.utcnow(), colour=red)
+            except IndexError:
+                embed_msg = discord.Embed(title=f"'{rank}' is not a number between 1 and 4!",
+                                          timestamp=datetime.utcnow(), colour=red)
+            await ctx.send(embed=embed_msg)
+        else:
+            embed_msg = discord.Embed(title=f"You don't have permission to use that command!", colour=red,
+                                      timestamp=datetime.utcnow())
+            await ctx.send(embed=embed_msg)
+
+    @commands.command()
+    async def cases(self, ctx, *, tier='None'):
+
+        high_end_aliases = ['highend', 'high end', '1', 'top', 'he', 'best', 'high', 'tier 1', '$$$$', 'high end cases', 'highend cases']
+
+        midrange_aliases = ['midrange', 'mid range', '2', 'tier 2', 'value', '$$$', 'mr', 'mid', 'midrange cases', 'mid range cases']
+
+        low_end_aliases = ['lowend', 'low end', '3', 'tier 3', 'low', '$$', 'le', 'low end cases', 'lowend cases']
+
+        budget_aliases = ['budget', 'cheapest', 'cheap', 'b', '4', '$$', 'budget cases', 'budget cases']
+
+        if tier.lower() in high_end_aliases:
+            tier = 0
+        elif tier.lower() in midrange_aliases:
+            tier = 1
+        elif tier.lower() in low_end_aliases:
+            tier = 2
+        elif tier.lower() in budget_aliases:
+            tier = 3
+
+        conn = await aiosqlite.connect("bot.db")
+        cursor = await conn.execute("SELECT * from cases")
+        info = await cursor.fetchall()
+        await conn.commit()
+        await conn.close()
+
+        tiers = ['High End Cases ($$$$)', 'Midrange Cases ($$$)', 'Low End Cases ($$)', 'Budget Cases ($)']
+
+        high_end_cases = ''
+        midrange_cases = ''
+        low_end_cases = ''
+        budget_cases = ''
+
+        if tier == 'None':
+
+            embeds = []
+
+            for case in info:
+                if case[1] == 1:
+                    high_end_cases += f'\n{case[0]}'
+                if case[1] == 2:
+                    midrange_cases += f'\n{case[0]}'
+                if case[1] == 3:
+                    low_end_cases += f'\n{case[0]}'
+                if case[1] == 4:
+                    budget_cases += f'\n{case[0]}'
+
+            descs = [i for i in (high_end_cases, midrange_cases, low_end_cases, budget_cases)]
+
+            for i in range(4):
+                embed_msg = discord.Embed(title=tiers[i], description=descs[i], colour=red, timestamp=datetime.utcnow())
+                embed_msg.set_footer(text=f'Tier {i + 1} out of 4')
+                embeds.append(embed_msg)
+
+            paginator = DiscordUtils.Pagination.CustomEmbedPaginator(ctx, timeout=30)
+            paginator.add_reaction('⏪', "back")
+            paginator.add_reaction('⏩', "next")
+            paginator.add_reaction('❌', "delete")
+
+            await paginator.run(embeds)
+            try:
+                await ctx.message.delete()
+            except:
+                pass
+
+        else:
+
+            for case in info:
+                if case[1] == 1:
+                    high_end_cases += f'\n{case[0]}'
+                if case[1] == 2:
+                    midrange_cases += f'\n{case[0]}'
+                if case[1] == 3:
+                    low_end_cases += f'\n{case[0]}'
+                if case[1] == 4:
+                    budget_cases += f'\n{case[0]}'
+
+            descs = [i for i in (high_end_cases, midrange_cases, low_end_cases, budget_cases)]
+
+            embed_msg = discord.Embed(title=tiers[tier], description=descs[tier], colour=red,
+                                      timestamp=datetime.utcnow())
+            message = await ctx.send(embed=embed_msg)
+
+            await message.add_reaction("❌")
+
+            def check(reaction, user):
+                return user == ctx.message.author and str(reaction.emoji) == "❌"
+
+            reaction, user = await self.bot.wait_for('reaction_add', check=check)
+
+            await message.delete()
+
+            try:
+                await ctx.message.delete()
+            except:
+                pass
+
+    @commands.command()
+    async def deletecase(self, ctx, *, case_name):
+        global allowed_ids
+
+        if ctx.message.author.id in allowed_ids:
+            conn = await aiosqlite.connect("bot.db")
+            cursor = await conn.execute("SELECT * from cases")
+            info = await cursor.fetchall()
+            await conn.commit()
+            await conn.close()
+
+            found = False
+
+            for case in info:
+                if case[0] == case_name:
+                    found = True
+            if found is True:
+                conn = await aiosqlite.connect("bot.db")
+                cursor = await conn.execute(f"DELETE FROM cases WHERE name = '{case_name}'")
+                await conn.commit()
+                await conn.close()
+                embed_msg = discord.Embed(title=f"Deleted case '{case_name}'.", colour=red, timestamp=datetime.utcnow())
+            else:
+                embed_msg = discord.Embed(title=f"Case with name '{case_name}' not found.", colour=red,
+                                          timestamp=datetime.utcnow())
+            await ctx.send(embed=embed_msg)
+        else:
+            embed_msg = discord.Embed(title=f"You don't have permission to use that command!", colour=red,
+                                      timestamp=datetime.utcnow())
+            await ctx.send(embed=embed_msg)
 
 def setup(bot):
     bot.add_cog(PCPartPicker(bot))
