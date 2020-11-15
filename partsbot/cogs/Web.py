@@ -22,6 +22,8 @@ file.close()
 reddit_details = praw.Reddit(client_id=data["client_id"], client_secret=data["client_secret"], username=data["username"],
                      password=data["password"], user_agent='praw thing')
 
+apexstats_api_key = data["TRN-Api-Key"]
+
 subs = ['pcmasterrace', 'buildapc', 'buildapcsales', 'corsair', 'razer', 'intel', 'amd', 'ayymd', 'mechanicalkeyboards',
         'nvidia', 'phanteks', 'battlestations', 'pcgaming', 'gamingpc', 'watercooling', 'overclocking', 'sffpc', 'nzxt',
         'hackintosh', 'monitors', 'pcbuild', 'hardware', 'linustechtips', 'raspberry_pi', 'python', 'cats']
@@ -820,6 +822,195 @@ class Web(commands.Cog):
                                       timestamp=datetime.utcnow())
             embed_msg.set_footer(text='Powered by novelkeys.xyz')
             await message.edit(embed=embed_msg)
+
+    @commands.command(description='sends apex legends statistics for players on pc, xbox or playstation.')
+    @commands.cooldown(2, 60, commands.BucketType.member)
+    async def apexstats(self, ctx, platform, *, user):
+        global apexstats_api_key
+        platformnumber = 0
+
+        pcalises = ['pc', 'origin', 'desktop']
+        psaliases = ['ps', 'playstation', 'ps4', 'psn', 'ps5', 'pls', 'play']
+        xbxaliases = ['xbox', 'xb', 'xboxone', 'xbox', 'xbx', 'x', 'xbo', 'box']
+
+        if str(platform).lower() in pcalises:
+            platformnumber = '5'
+        elif str(platform).lower() in psaliases:
+            platformnumber = '2'
+        elif str(platform).lower() in xbxaliases:
+            platformnumber = '1'
+
+        if not platformnumber == 0:
+            try:
+                headers = {'TRN-Api-Key': apexstats_api_key}
+
+                page = requests.get(f"https://public-api.tracker.gg/v2/apex/standard/profile/{platformnumber}/{user}",
+                                    headers=headers)
+
+                database = page.json()
+
+                playerdata = {}
+
+                try:
+                    playerdata["profileurl"] = database['data']['platformInfo']['avatarUrl']
+                except:
+                    pass
+
+                try:
+                    playerdata["profileuserid"] = database['data']['platformInfo']['platformUserId']
+                except:
+                    pass
+
+                try:
+                    playerdata["profileuserhandle"] = database['data']['platformInfo']['platformUserHandle']
+                except:
+                    pass
+
+                try:
+                    playerdata["profileuseridentifier"] = database['data']['platformInfo']['platformUserIdentifier']
+                except:
+                    pass
+
+                try:
+                    playerdata["platform"] = database['data']['platformInfo']['platformSlug']
+                except:
+                    pass
+
+                try:
+                    playerdata["countrycode"] = database['data']['userInfo']['countryCode']
+                except:
+                    pass
+
+                try:
+                    playerdata["rankname"] = database['data']['segments'][0]['stats']['rankScore']['metadata'][
+                        'rankName']
+                except:
+                    pass
+
+                try:
+                    playerdata["rankurl"] = database['data']['segments'][0]['stats']['rankScore']['metadata']['iconUrl']
+                except:
+                    pass
+
+                try:
+                    playerdata["activelegendname"] = database['data']['metadata']['activeLegendName']
+                except:
+                    pass
+
+                try:
+                    playerdata["level"] = database['data']['segments'][0]['stats']['level']['displayValue']
+                except:
+                    pass
+
+                try:
+                    playerdata["kills"] = database['data']['segments'][0]['stats']['kills']['displayValue']
+                except:
+                    pass
+
+                try:
+                    playerdata["winningkills"] = database['data']['segments'][0]['stats']['winningKills'][
+                        'displayValue']
+                except:
+                    pass
+
+                try:
+                    playerdata["damage"] = database['data']['segments'][0]['stats']['damage']['displayValue']
+                except:
+                    pass
+
+                try:
+                    playerdata["matchesplayed"] = database['data']['segments'][0]['stats']['matchesPlayed'][
+                        'displayValue']
+                except:
+                    pass
+
+                try:
+                    playerdata["timesplacedtop3"] = database['data']['segments'][0]['stats']['timesPlacedtop3'][
+                        'displayValue']
+                except:
+                    pass
+
+                embed_msg = discord.Embed(title="Apex Legends Statistics", colour=red, timestamp=datetime.utcnow())
+                embed_msg.set_author(name=playerdata["profileuseridentifier"], icon_url=playerdata["profileurl"])
+                embed_msg.set_footer(text="Powered by apex.tracker.gg")
+
+                try:
+                    embed_msg.add_field(name="Country", value=playerdata["countrycode"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Platform", value=playerdata["platform"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Rank", value=playerdata["rankname"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Active Legend Name", value=playerdata["activelegendname"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Level", value=playerdata["level"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Matches Played", value=playerdata["matchesplayed"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Times Placed Top 3", value=playerdata["timesplacedtop3"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Kills", value=playerdata["kills"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Winning Kills", value=playerdata["winningkills"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.add_field(name="Damage", value=playerdata["damage"], inline=False)
+                except:
+                    pass
+
+                try:
+                    embed_msg.set_thumbnail(url=playerdata["rankurl"])
+                except:
+                    pass
+
+                await ctx.send(embed=embed_msg)
+
+
+
+            except KeyError:
+                embed_msg = discord.Embed(title=f"User '{user}' not found.",
+                                          description='Double check their username and that you are checking on the correct platform.',
+                                          colour=red, timestamp=datetime.utcnow())
+                embed_msg.set_footer(text="Powered by apex.tracker.gg")
+                await ctx.send(embed=embed_msg)
+
+        else:
+            embed_msg = discord.Embed(title=f"'{platform}' is an invalid platform!",
+                                      description='Make sure you are using one of the following platforms:\n\nPC\nXbox\nPlaystation',
+                                      colour=red, timestamp=datetime.utcnow())
+            embed_msg.set_footer(text="Powered by apex.tracker.gg")
+            await ctx.send(embed=embed_msg)
+
+
+
+
+
 
 
 def setup(bot):
