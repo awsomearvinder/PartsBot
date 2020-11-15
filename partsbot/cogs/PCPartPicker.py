@@ -939,7 +939,7 @@ class PCPartPicker(commands.Cog):
                                                 issues.append('The CoolerMaster MF120 fans have bad noise normalized performance as well as mediocre fan bearings.')
                                             if 'LL120' in thelist or 'LL140' in thelist:
                                                 issues.append('The Corsair LL120/LL140 fans have bad noise normalized performance as well as mediocre fan bearings.')
-                                            if 'B450M Pro4' in thelist or 'B450 Pro4' in thelist:
+                                            if 'B450M PRO4' in thelist or 'B450 Pro4' in thelist:
                                                 issues.append('The B450(M) PRO4 has no Load Line Calibration meaning increased voltage droop.')
                                             if 'Western Digital Green' in thelist:
                                                 issues.append('WD Green is a DRAMless SSD meaning it can be slower than a hard drive.')
