@@ -923,7 +923,7 @@ class PCPartPicker(commands.Cog):
 
                                             if 'H510' in thelist or 'H710' in thelist or 'S340' in thelist:
                                                 issues.append('NZXT cases have limited airflow. Using these cases may result in increased noise and overheating components.')
-                                            if 'QVO' and 'Samsung' in thelist:
+                                            if 'QVO' in thelist and 'Samsung' in thelist:
                                                 issues.append('The Samsung QVO line of SSDs use QLC NAND flash which makes the SSD slow down as it fills up as well as make the SSD have a decreased linespan.')
                                             if 'Thermaltake Smart' in thelist:
                                                 issues.append('Thermaltake Smart is a notoriously bad PSU with lacking protections.')
@@ -973,6 +973,19 @@ class PCPartPicker(commands.Cog):
                                                 issues.append('CM MasterLiquid AIOs have worse performance than similarly priced air coolers and they have leaking issues.')
                                             if 'Asus PRIME B450' in thelist:
                                                 issues.append('Asus PRIME B450 motherboards have weak VRMs.')
+                                            if '60 GB' in thelist or '120 GB' in thelist or '60GB' in thelist or '120GB' in thelist or '250 GB' in thelist or '250GB' in thelist or '256GB' in thelist or '256 GB' in thelist or '128GB' in thelist or '128 GB' in thelist:
+                                                issues.append('Low capacity storage mediums are usually not worth it because of their poor value.')
+                                            if 'Power Supply' in thelist and not '80+' in thelist:
+                                                issues.append('Unrrated Power Supplies are usually poor performing/have other issues.')
+
+                                            if '1 x 16 GB' in thelist:
+                                                issues.append('Single channel memory has less bandwidth than dual channel which calls for a significant performance loss.')
+                                            if '1 x 8 GB' in thelist:
+                                                issues.append('Single channel memory has less bandwidth than dual channel which calls for a significant performance loss.')
+                                            if 'CXM' in thelist:
+                                                issues.append('Corsair CXM power supplies lack protections such as 12v OCP and are worse than the regular CX (2017) power supplies.')
+                                            if not 'Solid State Drive' in thelist:
+                                                issues.append('Your list doesn\'t have a Solid State Drive. Having one will speed up your loading times significantly.')
 
                                             description = ''
 
