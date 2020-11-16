@@ -137,11 +137,6 @@ async def on_command_error(ctx, error):
         if int(highest[1]) > 85:
             embed_msg = discord.Embed(title=f"Command '{ctx.message.content[1:]}' not found.", description=f'Perhaps you meant \'**{highest[0]}**\'.', timestamp=datetime.utcnow(), colour=red)
             await ctx.send(embed=embed_msg)
-    else:
-        embed_msg = discord.Embed(title=f"Error: {str(error)}",
-                                  description=f"Please contact QuaKe#5943 if you see with a screenshot showing the command you used.",
-                                  timestamp=datetime.utcnow(), colour=red)
-        await ctx.send(embed=embed_msg)
     channel = bot.get_channel(773989689060229180)
     embed_msg = discord.Embed(title=f"Error: {str(error)}", description=f"**Text:**\n{ctx.message.content}\n\n**User ID:**\n{ctx.author.id}\n\n**Full Details:**\n{str(ctx.message)}", colour=error_colour, timestamp=datetime.utcnow())
     await channel.send(embed=embed_msg)
