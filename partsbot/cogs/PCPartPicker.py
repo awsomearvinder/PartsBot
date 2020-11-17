@@ -265,13 +265,16 @@ def format_link(url, message):
                 else:
                     thelist = f"{thelist}**{newline}{newproducttypes[i]}** - {newproductnames[i]}"
             if len(thelist) > 1950:
-                thelist = thelist[0:1950]
+                thelist = ''
+                for i in range(len(newproductnames)):
+                    newline = ''
+                    if not thelist == '':
+                        newline = '\n'
+                    thelist = f"{thelist}**{newline}{newproducttypes[i]}** - {newproductnames[i]}"
+                if len(thelist) > 1950:
+                    thelist = thelist[0:1950]
             embed_msg = discord.Embed(title=f"PCPartPicker List", description=f"{thelist}\n\n**Estimated Wattage:** {wattage}\n**Total:** {prices[-1]}",
-                                      colour=red, timestamp=datetime.utcnow(), url=url)
-            embed_msg.set_author(name=message.author, icon_url=message.author.avatar_url)
-            embed_msg.set_footer(text='Powered by PCPartPicker')
-            if len(images) > 0:
-                embed_msg.set_thumbnail(url=f"https:{random.choice(images)}")
+                                      colour=red, url=url)
 
             return embed_msg, thelist
         else:
@@ -944,13 +947,6 @@ class PCPartPicker(commands.Cog):
                                         embed_msg, thelist = await asyncio.get_event_loop().run_in_executor(pool, format_link, i,
                                                                                                    message)
                                         if not thelist == 'rate_limited':
-                                            formattedmessage = await message.channel.send(embed=embed_msg)
-
-                                            try:
-                                                await formattedmessage.add_reaction("👍")
-                                                await formattedmessage.add_reaction("👎")
-                                            except:
-                                                pass
 
                                             issues = []
 
@@ -999,7 +995,7 @@ class PCPartPicker(commands.Cog):
                                             if 'WINDFORCE' in thelist:
                                                 issues.append('Gigabyte WINDFORCE graphics cards have sleeve bearing fans which hinder their reliability and lifespan.')
                                             if 'Thermaltake' in thelist and 'UX100' in thelist:
-                                                issues.append('The Thermaltake UX100 is a poor performing CPU cooler')
+                                                issues.append('The Thermaltake UX100 is a poor performing CPU cooler.')
                                             if 'B450M DS3H' in thelist or 'B450M S2H' in thelist:
                                                 issues.append('The B450M DS3H and S2H have weak VRMs meaning that you may have issues with future upgrades.')
                                             if 'MasterLiquid' in thelist:
@@ -1016,9 +1012,11 @@ class PCPartPicker(commands.Cog):
                                             if '1 x 8 GB' in thelist:
                                                 issues.append('Single channel memory has less bandwidth than dual channel which calls for a significant performance loss.')
                                             if 'CXM' in thelist:
-                                                issues.append('Corsair CXM power supplies lack protections such as 12v OCP and are worse than the regular CX (2017) power supplies.')
+                                                issues.append('CXM uses double forward as a primary topology which is an inefficient design and is likely to whine due to the use of hard switching.')
                                             if not 'Solid State Drive' in thelist:
                                                 issues.append('Your list doesn\'t have a Solid State Drive. Having one will speed up your loading times significantly.')
+
+                                            formattedmessage = await message.channel.send(embed=embed_msg)
 
                                             description = ''
 
@@ -1026,185 +1024,20 @@ class PCPartPicker(commands.Cog):
                                                 description = f"{description}\n**{i+1}.** {issues[i]}"
 
                                             if not len(issues) == 0:
-                                                await message.add_reaction("⚠")
+                                                await formattedmessage.add_reaction("⚠")
                                                 embed_msg = discord.Embed(title=f"Found {len(issues)} potential issue(s) with your list", description=description, timestamp=datetime.utcnow(), colour=red, url=theurl)
-                                                try:
-                                                    await message.author.send(embed=embed_msg)
-                                                except:
-                                                    await message.channel.send(embed=embed_msg)
 
-        except AttributeError:
-            if rate_limited == '1':
-                if not message.author.id == 769886576321888256:
-                    if 'https://' and 'pcpartpicker' in message.content:
-                        urls = ['https://ae.pcpartpicker.com/list/', 'https://tr.pcpartpicker.com/list/',
-                                'https://th.pcpartpicker.com/list/', 'https://se.pcpartpicker.com/list/',
-                                'https://es.pcpartpicker.com/list/', 'https://kr.pcpartpicker.com/list/',
-                                'https://sg.pcpartpicker.com/list/', 'https://sa.pcpartpicker.com/list/',
-                                'https://qa.pcpartpicker.com/list/', 'https://pt.pcpartpicker.com/list/',
-                                'https://pl.pcpartpicker.com/list/', 'https://ph.pcpartpicker.com/list/',
-                                'https://om.pcpartpicker.com/list/', 'https://no.pcpartpicker.com/list/',
-                                'https://nl.pcpartpicker.com/list/', 'https://mx.pcpartpicker.com/list/',
-                                'https://kw.pcpartpicker.com/list/', 'https://jp.pcpartpicker.com/list/',
-                                'https://it.pcpartpicker.com/list/', 'https://il.pcpartpicker.com/list/',
-                                'https://ie.pcpartpicker.com/list/W8cdcq', 'https://in.pcpartpicker.com/list/',
-                                'https://hk.pcpartpicker.com/list/W8cdcq', 'https://de.pcpartpicker.com/list/',
-                                'https://fr.pcpartpicker.com/list/', 'https://fi.pcpartpicker.com/list/',
-                                'https://dk.pcpartpicker.com/list/', 'https://ca.pcpartpicker.com/list/',
-                                'https://br.pcpartpicker.com/list/', 'https://be.pcpartpicker.com/list/',
-                                'https://bh.pcpartpicker.com/list/', 'https://ar.pcpartpicker.com/list/',
-                                'https://pcpartpicker.com/list/',
-                                'https://uk.pcpartpicker.com/list/', 'https://fr.pcpartpicker.com/list/',
-                                'https://nz.pcpartpicker.com/list/', 'https://au.pcpartpicker.com/list/']
-                        iterations = 0
-                        matches_positions = []
-                        found_url = False
-                        positions = []
-                        ctxurls = []
-                        for i in urls:
-                            if i in message.content:
-                                matches = re.finditer(i, message.content)
-                                matches_positions = [match.start() for match in matches]
-                            for i in matches_positions:
-                                positions.append(i)
-                            matches_positions = []
-                        if len(positions) > 0:
-                            for i in positions:
-                                counter = i
-                                while not f"{message.content[counter]}{message.content[counter + 1]}{message.content[counter + 2]}{message.content[counter + 3]}{message.content[counter + 4]}" == "list/":
-                                    counter = counter + 1
-                                ctxurls.append(
-                                    message.content[positions[positions.index(i)]:(counter + 11)].replace(' ', ''))
-                        if len(ctxurls) > 0:
-                            for i in ctxurls:
-                                theurl = i
-                                with concurrent.futures.ThreadPoolExecutor() as pool:
-                                    embed_msg, thelist = await asyncio.get_event_loop().run_in_executor(pool,
-                                                                                                        format_link, i,
-                                                                                                        message)
-                                    if not thelist == 'rate_limited':
-                                        formattedmessage = await message.channel.send(embed=embed_msg)
+                                                warning = ['⚠']
 
-                                        try:
-                                            await formattedmessage.add_reaction("👍")
-                                            await formattedmessage.add_reaction("👎")
-                                        except:
-                                            pass
+                                                def check(reaction, user):
+                                                    return user == message.author and str(reaction.emoji) in warning
 
-                                        issues = []
+                                                reaction, user = await self.bot.wait_for('reaction_add', check=check)
 
-                                        if 'H510' in thelist or 'H710' in thelist or 'S340' in thelist:
-                                            issues.append(
-                                                'NZXT cases have limited airflow. Using these cases may result in increased noise and overheating components.')
-                                        if 'QVO' in thelist and 'Samsung' in thelist:
-                                            issues.append(
-                                                'The Samsung QVO line of SSDs use QLC NAND flash which makes the SSD slow down as it fills up as well as make the SSD have a decreased linespan.')
-                                        if 'Thermaltake Smart' in thelist:
-                                            issues.append(
-                                                'Thermaltake Smart is a notoriously bad PSU with lacking protections.')
-                                        if 'S12II' in thelist:
-                                            issues.append(
-                                                'The Seasonic S12II/III are bad power supplies which lack OTP as well as have sleeve bearing fans.')
-                                        if 'System Power 9' in thelist:
-                                            issues.append(
-                                                'The be quiet! System Power 9 has a sleeve bearing fan which hinders its reliability and lifespan. It also doesn\'t have very well configured OTP.')
-                                        if 'Western Digital Blue' in thelist:
-                                            issues.append(
-                                                'WD Blue has unknown ECC/wear levelling. Nobody can tell if its good or bad.')
-                                        if 'Hyper 212' in thelist:
-                                            issues.append(
-                                                'The Hyper 212 EVO has a sleeve bearing fan which hinders its reliability and lifespan. The other Hyper 212\'s have mediocre bearings too.')
-                                        if 'MF120' in thelist:
-                                            issues.append(
-                                                'The CoolerMaster MF120 fans have bad noise normalized performance as well as mediocre fan bearings.')
-                                        if 'LL120' in thelist or 'LL140' in thelist:
-                                            issues.append(
-                                                'The Corsair LL120/LL140 fans have bad noise normalized performance as well as mediocre fan bearings.')
-                                        if 'B450M PRO4' in thelist or 'B450 Pro4' in thelist:
-                                            issues.append(
-                                                'The B450(M) PRO4 has no Load Line Calibration meaning increased voltage droop.')
-                                        if 'Western Digital Green' in thelist:
-                                            issues.append(
-                                                'WD Green is a DRAMless SSD meaning it can be slower than a hard drive.')
-                                        if 'Kingston A400' in thelist:
-                                            issues.append(
-                                                'Kingston A400 is a DRAMless SSD meaning it can be slower than a hard drive.')
-                                        if 'Crucial BX500' in thelist:
-                                            issues.append(
-                                                'The Crucial BX500 is a DRAMless SSD meaning it can be slower than a hard drive.')
-                                        if 'TCSunBow X3' in thelist:
-                                            issues.append(
-                                                'The TCSunBow X3 has a DRAM lottery meaning some have DRAM and some don\'t. The DRAMless version can be slower than a hard drive.')
-                                        if '1660 Ti' in thelist:
-                                            issues.append(
-                                                'The GTX 1660 Ti is usually not worth it if the GTX 1660 SUPER is cheaper or the RX 5600 XT is the same price.')
-                                        if 'SPEC-DELTA' in thelist:
-                                            issues.append(
-                                                'Corsair SPEC-DELTA has bad airflow meaning that using it may result in increased noise and overheating components.')
-                                        if '220T' in thelist:
-                                            issues.append(
-                                                'The Corsair 220T series of cases (including the airflow version) has poor airflow. Using them may result in increased noise and overheating components.')
-                                        if '275R' in thelist:
-                                            issues.append(
-                                                'The Corsair 275R series of cases (including the airflow version) has poor airflow. Using them may result in increased noise and overheating components.')
-                                        if 'A320' in thelist:
-                                            issues.append(
-                                                'Using A320 or A520 motherboards are usually not worth it because of their tendencies to have weak VRMs as well as other disadvantages like no overclocking.')
-                                        if 'VS450' in thelist or 'VS550' in thelist or 'CV450' in thelist or 'CV550' in thelist:
-                                            issues.append(
-                                                'Corsair VS/CV power supplies are lacking protections and have poor fans.')
-                                        if 'EVGA BR' in thelist or 'EVGA BA' in thelist or 'EVGA BQ' in thelist:
-                                            issues.append(
-                                                'EVGA BR/BA/BQ power supplies are lacking protections and have ripple issues.')
-                                        if 'WINDFORCE' in thelist:
-                                            issues.append(
-                                                'Gigabyte WINDFORCE graphics cards have sleeve bearing fans which hinder their reliability and lifespan.')
-                                        if 'Thermaltake' in thelist and 'UX100' in thelist:
-                                            issues.append('The Thermaltake UX100 is a poor performing CPU cooler')
-                                        if 'B450M DS3H' in thelist or 'B450M S2H' in thelist:
-                                            issues.append(
-                                                'The B450M DS3H and S2H have weak VRMs meaning that you may have issues with future upgrades.')
-                                        if 'MasterLiquid' in thelist:
-                                            issues.append(
-                                                'CM MasterLiquid AIOs have worse performance than similarly priced air coolers and they have leaking issues.')
-                                        if 'Asus PRIME B450' in thelist:
-                                            issues.append('Asus PRIME B450 motherboards have weak VRMs.')
-                                        if '60 GB' in thelist or '120 GB' in thelist or '60GB' in thelist or '120GB' in thelist or '250 GB' in thelist or '250GB' in thelist or '256GB' in thelist or '256 GB' in thelist or '128GB' in thelist or '128 GB' in thelist:
-                                            issues.append(
-                                                'Low capacity storage mediums are usually not worth it because of their poor value.')
-                                        if 'Power Supply' in thelist and not '80+' in thelist:
-                                            issues.append(
-                                                'Unrrated Power Supplies are usually poor performing/have other issues.')
-
-                                        if '1 x 16 GB' in thelist:
-                                            issues.append(
-                                                'Single channel memory has less bandwidth than dual channel which calls for a significant performance loss.')
-                                        if '1 x 8 GB' in thelist:
-                                            issues.append(
-                                                'Single channel memory has less bandwidth than dual channel which calls for a significant performance loss.')
-                                        if 'CXM' in thelist:
-                                            issues.append(
-                                                'Corsair CXM power supplies lack protections such as 12v OCP and are worse than the regular CX (2017) power supplies.')
-                                        if not 'Solid State Drive' in thelist:
-                                            issues.append(
-                                                'Your list doesn\'t have a Solid State Drive. Having one will speed up your loading times significantly.')
-
-                                        description = ''
-
-                                        for i in range(len(issues)):
-                                            description = f"{description}\n**{i + 1}.** {issues[i]}"
-
-                                        if not len(issues) == 0:
-                                            await message.add_reaction("⚠")
-                                            embed_msg = discord.Embed(
-                                                title=f"Found {len(issues)} potential issue(s) with your list",
-                                                description=description, timestamp=datetime.utcnow(), colour=red,
-                                                url=theurl)
-                                            try:
                                                 await message.author.send(embed=embed_msg)
-                                            except:
-                                                await message.channel.send(embed=embed_msg)
 
+        except:
+            pass
     @commands.command()
     async def regions(self, ctx):
         codes = ['ae', 'tr', 'th', 'se', 'es', 'kr', 'sg', 'sa', 'qa', 'pt', 'pl', 'ph', 'om', 'no', 'nl', 'mx',
