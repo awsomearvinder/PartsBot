@@ -227,6 +227,10 @@ class Builds(commands.Cog):
 
             else:
 
+                if len(list) > 1950:
+                    list = f"{list[:1950]}..."
+
+
                 conn = await aiosqlite.connect("bot.db")
                 cursor = await conn.execute("INSERT INTO builds VALUES (?, ?, ?)",(ctx.message.author.id, list, "https://pcpartpicker.com"))
                 await conn.commit()
