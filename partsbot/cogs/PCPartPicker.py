@@ -217,7 +217,10 @@ def format_link(url, message):
                     if 'No' in a.get_text() and 'Available' in a.get_text():
                         prices.append('No Prices Available')
                     else:
-                        prices.append(a.get_text().replace('\n', '').replace('Price', ''))
+                        if a.get_text().replace('\n', '').replace('Price', '') == '':
+                            prices.append('No Prices Available')
+                        else:
+                            prices.append(a.get_text().replace('\n', '').replace('Price', ''))
             for b in range(len(producttypes)):
                 stringedit = productnames[b].replace('\n', '')
                 stringedit = stringedit.replace('\u200b', '')
@@ -276,13 +279,39 @@ def format_link(url, message):
             embed_msg = discord.Embed(title=f"PCPartPicker List", description=f"{thelist}\n\n**Estimated Wattage:** {wattage}\n**Total:** {prices[-1]}",
                                       colour=red, url=url)
 
-            return embed_msg, thelist
+            pricinglist = ''
+
+            for i in range(len(newproductnames)):
+                newline = ''
+                if not pricinglist == '':
+                    newline = '\n'
+                if linkfound[i] is True:
+                    pricinglist = f"{pricinglist}{newline}[{newproductnames[i]}]({newproducturls[i]}) - {prices[i]}"
+                else:
+                    pricinglist = f"{pricinglist}{newline}{newproductnames[i]} - {prices[i]}"
+
+            if len(pricinglist) > 1950:
+                pricinglist = ''
+                for i in range(len(newproductnames)):
+                    newline = ''
+                    if not pricinglist == '':
+                        newline = '\n'
+                    pricinglist = f"{pricinglist}{newline}**{newproductnames[i]}** - {prices[i]}"
+                if len(pricinglist) > 1950:
+                    pricinglist = pricinglist[0:1950]
+
+            embed_msg = discord.Embed(title=f"PCPartPicker List", description=f"{thelist}\n\n**Estimated Wattage:** {wattage}\n**Total:** {prices[-1]}",
+                                      colour=red, url=url)
+
+            pricing_breakdown_embed = discord.Embed(title="Pricing Breakdown", description=pricinglist, url=url, colour=red)
+
+            return embed_msg, thelist, pricing_breakdown_embed
         else:
             db = open("scrapedata.txt", "w")
             db.write("0")
             global rate_limited
             rate_limited = "0"
-            return "rate_limited", "rate_limited"
+            return "rate_limited", "rate_limited", "rate_limited"
 
 async def log(bot, command, ctx):
     logs = bot.get_channel(769906608318316594)
@@ -944,7 +973,7 @@ class PCPartPicker(commands.Cog):
                                 for i in ctxurls:
                                     theurl = i
                                     with concurrent.futures.ThreadPoolExecutor() as pool:
-                                        embed_msg, thelist = await asyncio.get_event_loop().run_in_executor(pool, format_link, i,
+                                        embed_msg, thelist, pricing_breakdown_embed = await asyncio.get_event_loop().run_in_executor(pool, format_link, i,
                                                                                                    message)
                                         if not thelist == 'rate_limited':
 
@@ -1017,6 +1046,7 @@ class PCPartPicker(commands.Cog):
                                                 issues.append('Your list doesn\'t have a Solid State Drive. Having one will speed up your loading times significantly.')
 
                                             formattedmessage = await message.channel.send(embed=embed_msg)
+                                            #formattedmessage2 = await message.channel.send(embed=pricing_breakdown_embed)
 
                                             description = ''
 
@@ -1063,7 +1093,7 @@ class PCPartPicker(commands.Cog):
         await ctx.message.author.send(embed=embed_msg)
         await ctx.message.add_reaction('📨')
 
-    @commands.command(aliases=['builds', 'guides', 'buildguide'], description='retrieves the pcpartpicker build guides and allows you to choose a guide for viewing. if no region code is put, the command will default to US.')
+    @commands.command(aliases=['guides', 'buildguide'], description='retrieves the pcpartpicker build guides and allows you to choose a guide for viewing. if no region code is put, the command will default to US.')
     @commands.cooldown(1, 60, commands.BucketType.member)
     async def buildguides(self, ctx, country=None):
 

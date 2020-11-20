@@ -10,6 +10,8 @@ import requests
 import os
 from fuzzywuzzy import process
 import json
+import aiosqlite
+
 
 red = discord.Colour.from_rgb(0, 100, 0)
 error_colour = discord.Colour.from_rgb(254, 0, 0)
@@ -23,6 +25,16 @@ bot = commands.Bot(help_command=None, command_prefix=commands.when_mentioned_or(
 
 @bot.event
 async def on_ready():
+    
+    members = 0
+    for guild in bot.guilds:
+        members += guild.member_count
+    conn = await aiosqlite.connect("botdata.db")
+    cursor = await conn.execute("DELETE FROM botstats")
+    cursor = await conn.execute("INSERT INTO botstats VALUES (?, ?)", (str(members), str(len(bot.guilds))))
+    await conn.commit()
+    await conn.close()
+
     print('PartsBot is starting...')
     for filename in os.listdir("cogs"):
         if filename.endswith(".py"):
@@ -34,16 +46,31 @@ async def on_ready():
     embed_msg = discord.Embed(title="Bot restarted.", colour=red, timestamp=datetime.utcnow())
     await channel.send(embed=embed_msg)
     while True:
+
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=",help"))
+
         await asyncio.sleep(60)
+
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{len(bot.guilds)} servers."))
         await asyncio.sleep(30)
+
         members = 0
         for guild in bot.guilds:
             members += guild.member_count
-        await bot.change_presence(
-            activity=discord.Activity(type=discord.ActivityType.watching, name=f"{members} users."))
+
+        await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=f"{members} users."))
+
         await asyncio.sleep(30)
+
+        members = 0
+        for guild in bot.guilds:
+            members += guild.member_count
+        conn = await aiosqlite.connect("botdata.db")
+        cursor = await conn.execute("DELETE FROM botstats")
+        cursor = await conn.execute("INSERT INTO botstats VALUES (?, ?)", (str(members), str(len(bot.guilds))))
+        await conn.commit()
+        await conn.close()
+
 
 @bot.command()
 async def load(ctx, cog):
@@ -123,6 +150,7 @@ async def unload(ctx, cog):
                                   timestamp=datetime.utcnow())
         await ctx.send(embed=embed_msg)
 
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandOnCooldown):
@@ -140,6 +168,33 @@ async def on_command_error(ctx, error):
     channel = bot.get_channel(773989689060229180)
     embed_msg = discord.Embed(title=f"Error: {str(error)}", description=f"**Text:**\n{ctx.message.content}\n\n**User ID:**\n{ctx.author.id}\n\n**Full Details:**\n{str(ctx.message)}", colour=error_colour, timestamp=datetime.utcnow())
     await channel.send(embed=embed_msg)
+
+
+
+@bot.event
+async def on_guild_join(guild):
+    worked = False
+    for channel in guild.channels:
+        if worked is False:
+            try:
+                embed_msg = discord.Embed(title='Thanks for adding PartsBot to your server!', colour=red,
+                                          timestamp=datetime.utcnow())
+
+                embed_msg.add_field(name='Here\'s a few things you can try:',
+                                    value='''
+
+                - Sending a PCPartPicker list
+                - Doing `,partspecs [name of part]`
+                - Doing `,partprice [name of part]`
+                - Doing `,randompost`
+                If you need additional help, join the [Offical Discord](https://discord.gg/WM9pHp8) or contact **QuaKe#5943**.
+                ''')
+                await channel.send(embed=embed_msg)
+                worked = True
+            except:
+                pass
+
+
 
 file = open("credentials.json")
 
