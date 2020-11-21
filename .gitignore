@@ -1,5 +1,7 @@
 *credentials.json
 *.pyc
 *bot.db
+*botdata.db
+*News.py
 *__pycache__
 .\Scripts

@@ -74,7 +74,7 @@ async def on_ready():
 
 @bot.command()
 async def load(ctx, cog):
-    if 287256464047865857 or 405798011172814868 in ctx.author.id:
+    if 287256464047865857 in ctx.author.id or 405798011172814868 in ctx.author.id:
         if cog.lower() == 'all':
             for filename in os.listdir("cogs"):
                 if filename.endswith(".py"):
@@ -110,7 +110,7 @@ async def load(ctx, cog):
 
 @bot.command(aliases=['re'])
 async def reload(ctx, cog):
-    if 287256464047865857 or 405798011172814868 in ctx.author.id:
+    if 287256464047865857 in ctx.author.id or 405798011172814868 in ctx.author.id:
         if cog.lower() == 'all':
             for filename in os.listdir("cogs"):
                 if filename.endswith(".py"):
@@ -146,7 +146,7 @@ async def reload(ctx, cog):
 
 @bot.command(aliases=['un'])
 async def unload(ctx, cog):
-    if 287256464047865857 or 405798011172814868 in ctx.author.id:
+    if 287256464047865857 in ctx.author.id or 405798011172814868 in ctx.author.id:
         if cog.lower() == 'all':
             for filename in os.listdir("cogs"):
                 if filename.endswith(".py"):
@@ -191,9 +191,10 @@ async def on_command_error(ctx, error):
         await ctx.send(embed=embed_msg)
     if isinstance(error, commands.CommandNotFound):
         commandslist = [command.name for command in bot.commands]
-        highest = process.extractOne(ctx.message.content[1:], commandslist)
-        if int(highest[1]) > 85:
-            embed_msg = discord.Embed(title=f"Command '{ctx.message.content[1:]}' not found.", description=f'Perhaps you meant \'**{highest[0]}**\'.', timestamp=datetime.utcnow(), colour=red)
+        command = ctx.message.content[1:].split(" ")
+        highest = process.extractOne(command[0], commandslist)
+        if int(highest[1]) > 80:
+            embed_msg = discord.Embed(title=f"Command '{command[0]}' not found.", description=f'Perhaps you meant \'**{highest[0]}**\'.', timestamp=datetime.utcnow(), colour=red)
             await ctx.send(embed=embed_msg)
     channel = bot.get_channel(773989689060229180)
     embed_msg = discord.Embed(title=f"Error: {str(error)}", description=f"**Text:**\n{ctx.message.content}\n\n**User ID:**\n{ctx.author.id}\n\n**Full Details:**\n{str(ctx.message)}", colour=error_colour, timestamp=datetime.utcnow())
