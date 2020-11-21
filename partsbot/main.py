@@ -74,7 +74,7 @@ async def on_ready():
 
 @bot.command()
 async def load(ctx, cog):
-    if 287256464047865857 in ctx.author.id or 405798011172814868 in ctx.author.id:
+    if 287256464047865857 == ctx.author.id or 405798011172814868 == ctx.author.id:
         if cog.lower() == 'all':
             for filename in os.listdir("cogs"):
                 if filename.endswith(".py"):
@@ -110,7 +110,7 @@ async def load(ctx, cog):
 
 @bot.command(aliases=['re'])
 async def reload(ctx, cog):
-    if 287256464047865857 in ctx.author.id or 405798011172814868 in ctx.author.id:
+    if 287256464047865857 == ctx.author.id or 405798011172814868 == ctx.author.id:
         if cog.lower() == 'all':
             for filename in os.listdir("cogs"):
                 if filename.endswith(".py"):
@@ -146,7 +146,7 @@ async def reload(ctx, cog):
 
 @bot.command(aliases=['un'])
 async def unload(ctx, cog):
-    if 287256464047865857 in ctx.author.id or 405798011172814868 in ctx.author.id:
+    if 287256464047865857 == ctx.author.id or 405798011172814868 == ctx.author.id:
         if cog.lower() == 'all':
             for filename in os.listdir("cogs"):
                 if filename.endswith(".py"):
