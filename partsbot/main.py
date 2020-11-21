@@ -75,22 +75,32 @@ async def on_ready():
 @bot.command()
 async def load(ctx, cog):
     if 287256464047865857 or 405798011172814868 in ctx.author.id:
-        try:
-            bot.load_extension(f"cogs.{cog}")
-            embed_msg = discord.Embed(title=f"Sucessfully loaded the cog '{cog}'.",
+        if cog.lower() == 'all':
+            for filename in os.listdir("cogs"):
+                if filename.endswith(".py"):
+                    name = filename.replace(".py", "")
+                    bot.load_extension(f"cogs.{name}")
+            embed_msg = discord.Embed(title=f"Sucessfully loaded all cogs.",
                                       colour=red,
                                       timestamp=datetime.utcnow())
             await ctx.send(embed=embed_msg)
-        except discord.ext.commands.ExtensionNotFound:
-            embed_msg = discord.Embed(title=f"Cog '{cog}' not found.",
-                                      colour=red,
-                                      timestamp=datetime.utcnow())
-            await ctx.send(embed=embed_msg)
-        except discord.ext.commands.ExtensionAlreadyLoaded:
-            embed_msg = discord.Embed(title=f"Cog is already loaded!",
-                                      colour=red,
-                                      timestamp=datetime.utcnow())
-            await ctx.send(embed=embed_msg)
+        else:
+            try:
+                bot.load_extension(f"cogs.{cog}")
+                embed_msg = discord.Embed(title=f"Sucessfully loaded the cog '{cog}'.",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
+            except discord.ext.commands.ExtensionNotFound:
+                embed_msg = discord.Embed(title=f"Cog '{cog}' not found.",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
+            except discord.ext.commands.ExtensionAlreadyLoaded:
+                embed_msg = discord.Embed(title=f"Cog is already loaded!",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
 
     else:
         embed_msg = discord.Embed(title="You don't have permission to use this command!",
@@ -101,22 +111,32 @@ async def load(ctx, cog):
 @bot.command(aliases=['re'])
 async def reload(ctx, cog):
     if 287256464047865857 or 405798011172814868 in ctx.author.id:
-        try:
-            bot.reload_extension(f"cogs.{cog}")
-            embed_msg = discord.Embed(title=f"Sucessfully reloaded the cog '{cog}'.",
+        if cog.lower() == 'all':
+            for filename in os.listdir("cogs"):
+                if filename.endswith(".py"):
+                    name = filename.replace(".py", "")
+                    bot.reload_extension(f"cogs.{name}")
+            embed_msg = discord.Embed(title=f"Sucessfully reloaded all cogs.",
                                       colour=red,
                                       timestamp=datetime.utcnow())
             await ctx.send(embed=embed_msg)
-        except discord.ext.commands.ExtensionNotFound:
-            embed_msg = discord.Embed(title=f"Cog '{cog}' not found.",
-                                      colour=red,
-                                      timestamp=datetime.utcnow())
-            await ctx.send(embed=embed_msg)
-        except discord.ext.commands.ExtensionNotLoaded:
-            embed_msg = discord.Embed(title=f"Cog is not loaded!",
-                                      colour=red,
-                                      timestamp=datetime.utcnow())
-            await ctx.send(embed=embed_msg)
+        else:
+            try:
+                bot.reload_extension(f"cogs.{cog}")
+                embed_msg = discord.Embed(title=f"Sucessfully reloaded the cog '{cog}'.",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
+            except discord.ext.commands.ExtensionNotFound:
+                embed_msg = discord.Embed(title=f"Cog '{cog}' not found.",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
+            except discord.ext.commands.ExtensionNotLoaded:
+                embed_msg = discord.Embed(title=f"Cog is not loaded!",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
 
     else:
         embed_msg = discord.Embed(title="You don't have permission to use this command!",
@@ -127,22 +147,32 @@ async def reload(ctx, cog):
 @bot.command(aliases=['un'])
 async def unload(ctx, cog):
     if 287256464047865857 or 405798011172814868 in ctx.author.id:
-        try:
-            bot.unload_extension(f"cogs.{cog}")
-            embed_msg = discord.Embed(title=f"Sucessfully unloaded the cog '{cog}'.",
+        if cog.lower() == 'all':
+            for filename in os.listdir("cogs"):
+                if filename.endswith(".py"):
+                    name = filename.replace(".py", "")
+                    bot.unload_extension(f"cogs.{name}")
+            embed_msg = discord.Embed(title=f"Sucessfully unloaded all cogs.",
                                       colour=red,
                                       timestamp=datetime.utcnow())
             await ctx.send(embed=embed_msg)
-        except discord.ext.commands.ExtensionNotFound:
-            embed_msg = discord.Embed(title=f"Cog '{cog}' not found.",
-                                      colour=red,
-                                      timestamp=datetime.utcnow())
-            await ctx.send(embed=embed_msg)
-        except discord.ext.commands.ExtensionNotLoaded:
-            embed_msg = discord.Embed(title=f"Cog is already unloaded!",
-                                      colour=red,
-                                      timestamp=datetime.utcnow())
-            await ctx.send(embed=embed_msg)
+        else:
+            try:
+                bot.unload_extension(f"cogs.{cog}")
+                embed_msg = discord.Embed(title=f"Sucessfully unloaded the cog '{cog}'.",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
+            except discord.ext.commands.ExtensionNotFound:
+                embed_msg = discord.Embed(title=f"Cog '{cog}' not found.",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
+            except discord.ext.commands.ExtensionNotLoaded:
+                embed_msg = discord.Embed(title=f"Cog is already unloaded!",
+                                          colour=red,
+                                          timestamp=datetime.utcnow())
+                await ctx.send(embed=embed_msg)
 
     else:
         embed_msg = discord.Embed(title="You don't have permission to use this command!",
