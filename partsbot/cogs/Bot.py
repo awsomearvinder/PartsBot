@@ -87,7 +87,7 @@ class Bot(commands.Cog):
     @commands.command(description='sends bot information including invite link, official discord and credits.')
     async def info(self, ctx):
         embed_msg = discord.Embed(title="About PartsBot.",
-                                  description="PartsBot was created by QuaKe#5943.\nPartsBot scrapes [PCPartPicker](https://pcpartpicker.com/) and is programmed in Python with the [discord.py](https://github.com/Rapptz/discord.py) API wrapper.\n\n[Invite Link](https://discord.com/api/oauth2/authorize?client_id=769886576321888256&permissions=0&scope=bot) • [Official Discord Server](https://discord.gg/WM9pHp8) • [Discord Bot List](https://discordbotlist.com/bots/partsbot) • [Github](https://github.com/QuaKe8782/PartsBot)\n\nSpecial thanks to Bogdan and Duck Dude.",
+                                  description="PartsBot was created by QuaKe#5943.\nPartsBot scrapes [PCPartPicker](https://pcpartpicker.com/) and is programmed in Python with the [discord.py](https://github.com/Rapptz/discord.py) API wrapper.\n\n[Invite Link](https://discord.com/api/oauth2/authorize?client_id=769886576321888256&permissions=0&scope=bot) • [Official Discord Server](https://discord.gg/WM9pHp8) • [Discord Bot List](https://discordbotlist.com/bots/partsbot) • [Github](https://github.com/QuaKe8782/PartsBot)\n\nSpecial thanks to Bogdan, Duck Dude, Zorf, Ozone and John Benber.",
                                   timestamp=datetime.utcnow(), colour=red)
         await ctx.send(embed=embed_msg)
         

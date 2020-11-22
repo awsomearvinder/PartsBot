@@ -196,6 +196,9 @@ async def on_command_error(ctx, error):
         if int(highest[1]) > 80:
             embed_msg = discord.Embed(title=f"Command '{command[0]}' not found.", description=f'Perhaps you meant \'**{highest[0]}**\'.', timestamp=datetime.utcnow(), colour=red)
             await ctx.send(embed=embed_msg)
+    if isinstance(error, commands.MissingPermissions):
+        embed_msg = discord.Embed(title="Missing Permissions!", description=str(error), timestamp=datetime.utcnow(), colour=red)
+        await ctx.send(embed=embed_msg)
     channel = bot.get_channel(773989689060229180)
     embed_msg = discord.Embed(title=f"Error: {str(error)}", description=f"**Text:**\n{ctx.message.content}\n\n**User ID:**\n{ctx.author.id}\n\n**Full Details:**\n{str(ctx.message)}", colour=error_colour, timestamp=datetime.utcnow())
     await channel.send(embed=embed_msg)
